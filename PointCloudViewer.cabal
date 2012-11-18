@@ -23,4 +23,4 @@ executable pcview
   build-depends:  base, text, mtl, lens, vector, bytestring, attoparsec, binary,
                   OpenGL, transformers, GLFW-b, GLUtil,
                   filepath, distributive, deepseq, JuicyPixels, containers, 
-                  linear >= 0.1.1, directory, ply-loader, pcd-loader
+                  linear >= 0.4.1, directory, ply-loader, pcd-loader

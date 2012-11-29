@@ -8,15 +8,10 @@ import Data.IORef (newIORef, writeIORef, readIORef)
 import qualified Data.Set as S
 import qualified Data.Vector.Storable as V
 import qualified Renderer as R
-import Graphics.Rendering.OpenGL
+import Graphics.Rendering.OpenGL hiding (scale)
 import Graphics.GLUtil
 import Camera
-import Linear.Matrix ((!*!), M44)
-import Linear.Metric
-import Linear.V2
-import Linear.V3
-import Linear.V4
-import Linear.Vector
+import Linear hiding (translation)
 import qualified PCD.Data as PCD
 import PCDCleaner
 import PointsGL
@@ -31,13 +26,15 @@ import System.FilePath ((</>), takeDirectory, takeExtension)
 
 data AppState = AppState { _cam          :: Camera 
                          , _prevMouse    :: Maybe (V2 Int)
-                         , _saveDepthmap :: AppState -> IO () }
+                         , _saveDepthmap :: AppState -> IO ()
+                         , _showGround   :: Bool }
 makeLenses ''AppState
 
 keyActions :: AppState -> [(R.Key, Bool)] -> IO AppState
 keyActions s keys 
   | (R.CharKey 'F', True) `elem` keys = (s^.saveDepthmap) s >> return s
   | (R.CharKey 'C', True) `elem` keys = print (s^.cam) >> return s
+  | (R.CharKey 'G', True) `elem` keys = return (showGround %~ not $ s)
   | otherwise = return s
 
 cameraControl :: Float -> Double -> R.UIEvents -> AppState -> (Bool, AppState)
@@ -98,7 +95,7 @@ buildMat s near far = V4 (set _x s 0)
                          (set _z (-s) 0)
 
 -- Configures OpenGL and returns a drawing function.
-setup :: Float -> FilePath -> IO (FilePath -> IO (), Camera -> IO ())
+setup :: Float -> FilePath -> IO (FilePath -> IO (), AppState -> IO ())
 setup scale ptFile = do clearColor $= Color4 1 1 1 0
                         depthFunc $= Just Lequal
                         vertexProgramPointSize $= Enabled
@@ -132,16 +129,29 @@ setup scale ptFile = do clearColor $= Color4 1 1 1 0
                             -- v' = V.filter goodPt v
                             v' = v
                         -- saveCleanPCD ptFile v'
+                        let printExtents (msg,dim) = 
+                              let d = V.map (view dim) v'
+                                  low = V.minimum d
+                                  high = V.maximum d
+                              in do putStr $ "Min "++msg
+                                    putStr $ " = "++show low
+                                    putStr $ "; Max "++msg
+                                    putStrLn $ " = "++show high
+                        mapM_ printExtents [("X", _x), ("Y",_y), ("Z",_z)]
                         drawPoints <- prepPoints v' (vertexPos s)
-                        let draw c = do gp Z (V3 1 0 0) (fmap (fmap realToFrac) $
-                                                         proj !*! toMatrix c)
-                                        currentProgram $= Just (cloudProg s)
-                                        m $= (toList . fmap (toList . fmap realToFrac) $
-                                              proj !*! toMatrix c)
-                                        activeTexture $= TextureUnit 0
-                                        uniform (heatTex s) $= Index1 (0::GLuint)
-                                        textureBinding Texture1D $= Just t
-                                        drawPoints
+                        let draw st = 
+                              let c = st^.cam
+                              in do when (st^.showGround)
+                                         (gp Z (V3 1 0 0) $
+                                             fmap (fmap realToFrac)
+                                                  (proj !*! toMatrix c))
+                                    currentProgram $= Just (cloudProg s)
+                                    m $= (toList . fmap (toList . fmap realToFrac) $
+                                          proj !*! toMatrix c)
+                                    activeTexture $= TextureUnit 0
+                                    uniform (heatTex s) $= Index1 (0::GLuint)
+                                    textureBinding Texture1D $= Just t
+                                    drawPoints
                         return (saveFloatFrame heatVec, draw)
 
 preDraw :: IO ()
@@ -171,7 +181,7 @@ runDisplay scale pcdFile =
      rate <- R.rateLimitHz 60
      (incFrame,getFPS) <- R.fps
      let renderLoop = loop (handler scale)
-                           (\s -> preDraw >> drawCloud (s^.cam))
+                           (\s -> preDraw >> drawCloud s)
          go frame c = 
            do incFrame
               (shouldExit,c') <- renderLoop c
@@ -182,11 +192,11 @@ runDisplay scale pcdFile =
          startCam = (translation._y .~ -1)
                   . (translation._z .~ 0.2) 
                   $ fpsDefault
-     go (0::Int) $ AppState startCam Nothing dumper
+     go (0::Int) $ AppState startCam Nothing dumper True
 
 pairs :: [a] -> [(a,a)]
 pairs [] = []
-pairs [x] = []
+pairs [_] = []
 pairs (x:y:xs) = (x,y) : pairs xs
 
 main :: IO ()

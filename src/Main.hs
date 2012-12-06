@@ -11,7 +11,7 @@ import qualified Renderer as R
 import Graphics.Rendering.OpenGL hiding (scale)
 import Graphics.GLUtil
 import Camera
-import Linear hiding (translation)
+import Linear hiding (trace, translation)
 import qualified PCD.Data as PCD
 import PCDCleaner
 import PointsGL
@@ -20,6 +20,7 @@ import MyPaths
 import HeatPalette
 import FrameGrabber
 import PointLoader
+import System.Console.GetOpt
 import System.Directory (canonicalizePath, createDirectory, doesDirectoryExist)
 import System.Environment (getArgs)
 import System.FilePath ((</>), takeDirectory, takeExtension)
@@ -88,11 +89,22 @@ initShader = do vs <- loadShader =<< getDataFileName "etc/cloud.vert"
                            <*> get (attribLocation p "vertexCoord")
                            <*> pure p
 
+-- |Build a projection matrix.
 buildMat :: Float -> Float -> Float -> M44 Float
 buildMat s near far = V4 (set _x s 0)
                          (set _y s 0)
                          (V4 0 0 (-2/(far-near)) ((near-far)/(far-near)))
                          (set _z (-s) 0)
+
+loadPoints :: FilePath -> IO (V.Vector (V3 Float))
+loadPoints ptFile = aux (takeExtension ptFile)
+  where aux ".pcd"  = do pts <- PCD.loadXyz ptFile
+                         if V.null pts
+                           then V.map (view _xyz) <$> PCD.loadXyzw ptFile
+                           else return pts
+        aux ".conf" = loadConf ptFile
+        aux ".ply"  = V.map (\(SurfacePoint p _ _) -> p) <$> loadPLYfancy ptFile
+        aux _       = load3DVerts ptFile
 
 -- Configures OpenGL and returns a drawing function.
 setup :: Float -> FilePath -> IO (FilePath -> IO (), AppState -> IO ())
@@ -106,20 +118,8 @@ setup scale ptFile = do clearColor $= Color4 1 1 1 0
                         activeTexture $= TextureUnit 0
                         uniform (heatTex s) $= Index1 (0::GLint)
                         (heatVec, t) <- heatTexture 1024
-                        let ext = takeExtension ptFile
                         gp <- groundPlane 5 0.1
-                        v <- case () of
-                               _ | ext == ".pcd" -> 
-                                   PCD.loadXyz ptFile >>= \v' ->
-                                     if V.null v'
-                                     then V.map (view _xyz) <$> 
-                                          PCD.loadXyzw ptFile
-                                     else return v'
-                               _ | ext == ".conf" -> loadConf ptFile
-                               _ | ext == ".ply" -> 
-                                   V.map (\(SurfacePoint p _ _) -> p) <$>
-                                   loadPLYfancy ptFile
-                               _ | otherwise -> load3DVerts ptFile
+                        v <- loadPoints ptFile
                         let m = uniformMat (camMat s)
                             proj = buildMat scale 0.01 100.0
                             --v' = V.filter ((< 0.009) . quadrance . view _xy) v
@@ -194,18 +194,14 @@ runDisplay scale pcdFile =
                   $ fpsDefault
      go (0::Int) $ AppState startCam Nothing dumper True
 
-pairs :: [a] -> [(a,a)]
-pairs [] = []
-pairs [_] = []
-pairs (x:y:xs) = (x,y) : pairs xs
+cliOptions :: [OptDescr Float]
+cliOptions = [ Option ['s'] ["scale"] (ReqArg read "scale") 
+                          "Scale applied to all geometry." ]
 
 main :: IO ()
-main = getArgs >>= aux
-  where aux [pcdFile] = canonicalizePath pcdFile >>= runDisplay 1
-        aux (pcdFile:args@(_:_)) = canonicalizePath pcdFile >>=
-                                   runDisplay (maybe 1 read (lookup "-s" (pairs args)))
-        aux _ = do putStrLn "Usage: PcdViewer PointCloudFile [-s X]"
-                   putStrLn $ "- To view a PCD, PLY, or .conf file, supply "++
-                              "the file name as a parameter. The \"-s\""++
-                              " option may be used to apply a scale factor "++
-                              "to the geometry."
+main = getArgs >>= aux . getOpt Permute cliOptions
+  where aux ([],[f],_) = canonicalizePath f >>= runDisplay 1 
+        aux ([s],[f],_) = canonicalizePath f >>= runDisplay s
+        aux (_,_,errs) = error $
+                         concat errs ++ 
+                         usageInfo "Usage: pcview [OPTION..] pointFile" cliOptions

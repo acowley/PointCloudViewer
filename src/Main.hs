@@ -1,7 +1,9 @@
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
 module Main where
 import Control.Applicative
-import SmallLens
+import Control.Lens.TH (makeLenses)
+import Control.Lens.Getter (view, (^.))
+import Control.Lens.Setter ((.~), (%~), set)
 import Control.Monad (when)
 import Data.Foldable (toList)
 import Data.IORef (newIORef, writeIORef, readIORef)

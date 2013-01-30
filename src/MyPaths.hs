@@ -5,13 +5,14 @@ import qualified Paths_PointCloudViewer as P
 getDataFileName :: FilePath -> IO FilePath
 getDataFileName = P.getDataFileName
 #else
+import System.Directory
 import System.FilePath
 
 projRoot :: FilePath
-projRoot = "/Users/acowley/Documents/Projects/PointCloudViewer"
+projRoot = "Documents/Projects/PointCloudViewer"
 
 getDataFileName :: FilePath -> IO FilePath
-getDataFileName = return . (projRoot </>)
+getDataFileName f = (</>projRoot </> f) `fmap` getHomeDirectory 
 #endif
 
 

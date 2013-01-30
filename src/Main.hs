@@ -108,6 +108,13 @@ loadPoints ptFile = aux (takeExtension ptFile)
         aux ".ply"  = V.map (\(SurfacePoint p _ _) -> p) <$> loadPLYfancy ptFile
         aux _       = load3DVerts ptFile
 
+cleanPts :: V.Vector (V3 Float) -> V.Vector (V3 Float)
+--cleanPts = id
+cleanPts = V.filter bounds
+  where bounds (V3 x y z) = x <= 0.13 && x >= -0.08
+                         && y <= 0.1 && y >= -0.11
+                         && z <= 0.31 && z >= 0
+
 -- Configures OpenGL and returns a drawing function.
 setup :: Float -> FilePath -> IO (FilePath -> IO (), AppState -> IO ())
 setup scale ptFile = do clearColor $= Color4 1 1 1 0
@@ -129,8 +136,8 @@ setup scale ptFile = do clearColor $= Color4 1 1 1 0
                             --                     in q < 0.02 || 
                             --                        (z > 0.1 && q < 0.07)
                             -- v' = V.filter goodPt v
-                            v' = v
-                        -- saveCleanPCD ptFile v'
+                            v' = cleanPts v
+                        saveCleanPCD ptFile v'
                         let printExtents (msg,dim) = 
                               let d = V.map (view dim) v'
                                   low = V.minimum d

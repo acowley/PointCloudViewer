@@ -111,9 +111,13 @@ loadPoints ptFile = aux (takeExtension ptFile)
 cleanPts :: V.Vector (V3 Float) -> V.Vector (V3 Float)
 --cleanPts = id
 cleanPts = V.filter bounds
-  where bounds (V3 x y z) = x <= 0.13 && x >= -0.08
-                         && y <= 0.1 && y >= -0.11
+  where bounds (V3 x y z) = x <= 0.11 && x >= -0.11  -- clean_big_basket
+                         && y <= 0.1 && y >= -0.09
                          && z <= 0.31 && z >= 0
+--   where bounds (V3 x y z) = x <= 0.13 && x >= -0.08 -- large_basket
+--                          && y <= 0.1 && y >= -0.11
+--                          && z <= 0.31 && z >= 0
+
 
 -- Configures OpenGL and returns a drawing function.
 setup :: Float -> FilePath -> IO (FilePath -> IO (), AppState -> IO ())

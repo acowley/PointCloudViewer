@@ -109,11 +109,11 @@ loadPoints ptFile = aux (takeExtension ptFile)
         aux _       = load3DVerts ptFile
 
 cleanPts :: V.Vector (V3 Float) -> V.Vector (V3 Float)
---cleanPts = id
-cleanPts = V.filter bounds
-  where bounds (V3 x y z) = x <= 0.11 && x >= -0.11  -- clean_big_basket
-                         && y <= 0.1 && y >= -0.09
-                         && z <= 0.31 && z >= 0
+cleanPts = id
+-- cleanPts = V.filter bounds
+--   where bounds (V3 x y z) = x <= 0.11 && x >= -0.11  -- clean_big_basket
+--                          && y <= 0.1 && y >= -0.09
+--                          && z <= 0.31 && z >= 0
 --   where bounds (V3 x y z) = x <= 0.13 && x >= -0.08 -- large_basket
 --                          && y <= 0.1 && y >= -0.11
 --                          && z <= 0.31 && z >= 0
@@ -135,13 +135,8 @@ setup scale ptFile = do clearColor $= Color4 1 1 1 0
                         v <- loadPoints ptFile
                         let m = uniformMat (camMat s)
                             proj = buildMat scale 0.01 100.0
-                            --v' = V.filter ((< 0.009) . quadrance . view _xy) v
-                            -- goodPt (V3 x y z) = let q = quadrance (V2 x y)
-                            --                     in q < 0.02 || 
-                            --                        (z > 0.1 && q < 0.07)
-                            -- v' = V.filter goodPt v
                             v' = cleanPts v
-                        saveCleanPCD ptFile v'
+                        -- saveCleanPCD ptFile v'
                         let printExtents (msg,dim) = 
                               let d = V.map (view dim) v'
                                   low = V.minimum d

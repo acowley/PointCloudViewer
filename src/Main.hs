@@ -1,4 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
 module Main where
 import Control.Lens (view, (^.), (.~))
 import Control.Monad (when)

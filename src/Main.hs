@@ -15,10 +15,10 @@ import System.FilePath ((</>), takeDirectory)
 import AppState
 import Camera
 -- import PCDCleaner
-import PointCloud (prepPoints)
-import GroundGrid (groundPlane, EuclideanGround(Z))
+import PointCloud.PointsGL (prepPoints)
+import PointCloud.GroundGrid (groundPlane, EuclideanGround(Z))
 import FrameGrabber
-import PointLoader
+import PointCloud.Loader (loadPoints)
 
 handler :: Float -> AppState -> Double -> R.UIEvents -> IO (Bool, AppState)
 handler scale s dt ui = keyActions s (fst (R.keys ui)) >>= 

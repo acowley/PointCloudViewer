@@ -1,4 +1,4 @@
-module PointCloud (prepPoints) where
+module PointCloud.PointsGL (prepPoints) where
 import Data.Foldable (toList)
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Storable as V
@@ -7,8 +7,8 @@ import Graphics.GLUtil
 import Graphics.Rendering.OpenGL
 import Linear (V3, M44)
 
-import HeatPalette (heatTexture)
-import MyPaths
+import Internal.MyPaths
+import PointCloud.HeatPalette (heatTexture)
 
 toGLMat :: Real a => M44 a -> [[GLfloat]]
 toGLMat = toList . fmap (toList . fmap realToFrac)

@@ -1,0 +1,3 @@
+I have encountered some trouble linking this project depending on flags set in ~/.cabal/config.
+
+Building with "cabal install --disable-shared" was a workaround.

@@ -1,4 +1,4 @@
-module HeatPalette (heatTexture) where
+module PointCloud.HeatPalette (heatTexture) where
 import qualified Data.Vector.Storable as V
 import Data.Word (Word8)
 import Foreign.Ptr (castPtr)

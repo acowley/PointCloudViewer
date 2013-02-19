@@ -1,5 +1,5 @@
 name:                PointCloudViewer
-version:             0.1.1.0
+version:             0.2
 synopsis:            PCD file point cloud viewer.
 license:             BSD3
 license-file:        LICENSE
@@ -8,19 +8,43 @@ maintainer:          acowley@gmail.com
 copyright:           (c) Anthony Cowley 2012
 category:            Robotics
 build-type:          Simple
-cabal-version:       >=1.8
+cabal-version:       >=1.10
 data-files:          etc/cloud.vert etc/cloud.frag 
                      etc/GroundPlane.vert etc/GroundPlane.frag
 
+source-repository head
+  type: git
+  location: git://github.com/acowley/PointCloudViewer.git
+
+library
+  cpp-options:      -DCABAL
+  ghc-options:      -O2 -Wall
+  exposed-modules:  PointCloud.GroundGrid, PointCloud.HeatPalette,
+                    PointCloud.Loader, PointCloud.PointsGL
+  build-depends:    base >= 4.6 && < 5, 
+                    bytestring >= 0.10,
+                    filepath,
+                    linear >= 0.2,
+                    vector >= 0.9,
+                    OpenGL,
+                    GLUtil >= 0.4.1,
+                    ply-loader,
+                    pcd-loader
+  hs-source-dirs:   src
+  default-language: Haskell2010
+
 executable pcview
-  cpp-options:    -DCABAL
-  main-is:        Main.hs
-  ghc-options:    -O2 -Wall -rtsopts
-  other-modules:  Camera, FrameGrabber, HeatPalette, MyPaths, PointCloud, 
-                  Renderer, PointLoader, Paths_PointCloudViewer, PCDCleaner, 
-                  GroundGrid
-  hs-source-dirs: src
-  build-depends:  base, text, mtl, lens, vector, bytestring, attoparsec, binary,
-                  OpenGL, transformers, GLFW-b, GLUtil,
-                  filepath, distributive, deepseq, JuicyPixels, containers, 
-                  linear >= 0.4.1, directory, ply-loader, pcd-loader
+  cpp-options:      -DCABAL
+  main-is:          Main.hs
+  ghc-options:      -O2 -Wall -rtsopts
+  other-modules:    Camera, FrameGrabber, Renderer, PCDCleaner,
+                    PointCloud.GroundGrid, PointCloud.HeatPalette,
+                    PointCloud.Loader, PointCloud.PointsGL,
+                    Paths_PointCloudViewer, Internal.MyPaths
+
+  hs-source-dirs:   src
+  build-depends:    base, text, mtl, lens, vector, bytestring, attoparsec, binary,
+                    OpenGL, transformers, GLFW-b, GLUtil,
+                    filepath, distributive, deepseq, JuicyPixels, containers, 
+                    linear >= 0.4.1, directory, ply-loader, pcd-loader
+  default-language: Haskell2010

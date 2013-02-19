@@ -1,4 +1,4 @@
-module GroundGrid (groundPlane, EuclideanGround(..)) where
+module PointCloud.GroundGrid (groundPlane, EuclideanGround(..)) where
 import Control.Exception (SomeException, catch)
 import Data.Foldable (toList)
 import Graphics.GLUtil
@@ -6,8 +6,9 @@ import Graphics.Rendering.OpenGL
 import Linear.V2
 import Linear.V3
 import Linear.Matrix
-import MyPaths
 import System.Exit (exitWith, ExitCode(..))
+
+import Internal.MyPaths
 
 data EuclideanGround = X | Y | Z deriving (Eq,Ord,Show,Enum)
 

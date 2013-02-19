@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module MyPaths (getDataFileName) where
+module Internal.MyPaths (getDataFileName) where
 #ifdef CABAL
 import qualified Paths_PointCloudViewer as P
 getDataFileName :: FilePath -> IO FilePath

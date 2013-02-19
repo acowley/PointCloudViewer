@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings, BangPatterns #-}
-module PointLoader where
+module PointCloud.Loader where
 import Control.Applicative
-import Control.Lens (view)
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Storable as V
 import Foreign.ForeignPtr (mallocForeignPtrBytes, withForeignPtr)
-import Linear.V3
+import Linear (V3(..), V4(..))
 import qualified PCD.Data as PCD
 import qualified PLY as PLY
 import System.FilePath (takeExtension)
@@ -28,11 +27,12 @@ loadPoints :: FilePath -> IO (V.Vector (V3 Float))
 loadPoints ptFile = aux $ takeExtension ptFile
   where aux ".pcd" = do pts <- PCD.loadXyz ptFile
                         if V.null pts
-                          then V.map (view _xyz) <$> PCD.loadXyzw ptFile
+                          then V.map xyz <$> PCD.loadXyzw ptFile
                           else return pts
         aux ".conf" = either error id <$> PLY.loadConfV3 "vertex" ptFile
         aux ".ply"  = either error id <$> PLY.loadElementsV3 "vertex" ptFile
         aux _       = loadRaw3D ptFile
+        xyz (V4 x y z _) = V3 x y z
 
 loadRaw3D :: FilePath -> IO (Vector (V3 Float))
 loadRaw3D f = withBinaryFile f ReadMode $ \h ->

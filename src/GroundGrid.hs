@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
-module VizMarkers where
+module GroundGrid (groundPlane, EuclideanGround(..)) where
 import Control.Exception (SomeException, catch)
 import Data.Foldable (toList)
 import Graphics.GLUtil
@@ -14,9 +13,6 @@ data EuclideanGround = X | Y | Z deriving (Eq,Ord,Show,Enum)
 
 enumToGL :: Enum a => a -> GLint
 enumToGL = fromIntegral . fromEnum
-
-toGLMat :: Real a => M44 a -> [[GLfloat]]
-toGLMat = toList . fmap (toList . fmap realToFrac)
 
 initGroundShader :: IO (EuclideanGround -> V3 GLfloat -> M44 GLfloat -> IO ())
 initGroundShader = do let giveUp :: SomeException -> IO a
@@ -43,11 +39,6 @@ initGroundShader = do let giveUp :: SomeException -> IO a
                            uniform plane $= Index1 (enumToGL whichPlane)
                            mat $= toList (fmap toList proj)
                            vec $= toList col
-
-checkErrors :: IO ()
-checkErrors = get errors >>= aux
-  where aux [] = return ()
-        aux x = print x >> exitWith (ExitFailure 1)
 
 -- |@groundPlane gridSize cellSize@ prepares an action for drawing a
 -- wireframe ground plane, centered at the origin, consisting of

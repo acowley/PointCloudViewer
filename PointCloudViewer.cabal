@@ -16,9 +16,9 @@ executable pcview
   cpp-options:    -DCABAL
   main-is:        Main.hs
   ghc-options:    -O2 -Wall -rtsopts
-  other-modules:  Camera, FrameGrabber, HeatPalette, MyPaths, PointsGL, 
+  other-modules:  Camera, FrameGrabber, HeatPalette, MyPaths, PointCloud, 
                   Renderer, PointLoader, Paths_PointCloudViewer, PCDCleaner, 
-                  VizMarkers
+                  GroundGrid
   hs-source-dirs: src
   build-depends:  base, text, mtl, lens, vector, bytestring, attoparsec, binary,
                   OpenGL, transformers, GLFW-b, GLUtil,

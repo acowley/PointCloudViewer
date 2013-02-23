@@ -13,7 +13,7 @@ import System.FilePath ((</>), takeDirectory)
 
 import AppState
 import Camera
--- import PCDCleaner
+import PCDCleaner (cleanPts, saveCleanPCD)
 import PointCloud.PointsGL (prepPoints)
 import PointCloud.GroundGrid (groundPlane, EuclideanGround(Z))
 import FrameGrabber
@@ -45,9 +45,8 @@ setup scale ptFile = do clearColor $= Color4 1 1 1 0
                         gp <- groundPlane 5 0.1
                         v <- loadPoints ptFile
                         let proj = buildMat scale 0.01 100.0
-                            --v' = cleanPts v
-                            v' = v
-                        -- saveCleanPCD ptFile v'
+                            (v', saveClean) = cleanPts v
+                        when saveClean $ saveCleanPCD ptFile v'
                         printExtents v'
                         (heatVec, drawPoints) <- prepPoints v'
                         let draw st = 

@@ -1,5 +1,5 @@
 name:                PointCloudViewer
-version:             0.2
+version:             0.2.1
 synopsis:            PCD file point cloud viewer.
 license:             BSD3
 license-file:        LICENSE
@@ -21,6 +21,7 @@ library
   ghc-options:      -O2 -Wall
   exposed-modules:  PointCloud.GroundGrid, PointCloud.HeatPalette,
                     PointCloud.Loader, PointCloud.PointsGL
+  other-modules:    Internal.MyPaths, Paths_PointCloudViewer
   build-depends:    base >= 4.6 && < 5, 
                     bytestring >= 0.10,
                     filepath,
